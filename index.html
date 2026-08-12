@@ -1,0 +1,862 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>德州撲克分析器</title>
+
+<style>
+:root{
+  --bg:#0b1016;
+  --panel:#141b24;
+  --panel2:#1b2531;
+  --line:#2b3848;
+  --text:#f5f7fb;
+  --muted:#9aa8b8;
+  --green:#49d79f;
+  --yellow:#f0c45a;
+  --red:#ff6b6b;
+}
+
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Microsoft JhengHei",sans-serif;
+  background:linear-gradient(180deg,#090d12,#111923);
+  color:var(--text);
+}
+
+.wrap{
+  max-width:760px;
+  margin:auto;
+  padding:14px 12px 40px;
+}
+
+.header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:8px 2px 16px;
+}
+
+.brand{
+  font-weight:900;
+  font-size:22px;
+}
+
+.small{
+  font-size:12px;
+  color:var(--muted);
+}
+
+.badge{
+  background:var(--green);
+  color:#062015;
+  font-size:12px;
+  font-weight:900;
+  padding:6px 10px;
+  border-radius:999px;
+}
+
+.panel{
+  background:#141b24;
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:15px;
+  margin-bottom:13px;
+}
+
+h2{
+  margin:0 0 12px;
+  font-size:16px;
+}
+
+.cards{
+  display:flex;
+  gap:9px;
+  flex-wrap:wrap;
+}
+
+.cardbtn{
+  width:58px;
+  height:78px;
+  border-radius:11px;
+  border:1px dashed #536274;
+  background:#101720;
+  color:#8190a0;
+  font-size:30px;
+  font-weight:800;
+}
+
+.cardbtn.filled{
+  background:white;
+  border-style:solid;
+  color:#111;
+  font-size:22px;
+}
+
+.cardbtn.red{
+  color:#d82727;
+}
+
+.row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+
+label{
+  display:block;
+  font-size:12px;
+  color:var(--muted);
+  margin-bottom:6px;
+}
+
+input,
+select{
+  width:100%;
+  background:var(--panel2);
+  border:1px solid var(--line);
+  color:white;
+  padding:12px;
+  border-radius:12px;
+  font-size:16px;
+}
+
+.pills{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.pill{
+  padding:9px 12px;
+  border-radius:999px;
+  border:1px solid var(--line);
+  background:#101720;
+  color:#dce4ec;
+  font-size:13px;
+}
+
+.pill.active{
+  border-color:var(--green);
+  background:#10271f;
+  color:var(--green);
+}
+
+.btn{
+  width:100%;
+  padding:15px;
+  border:0;
+  border-radius:14px;
+  background:var(--green);
+  color:#062015;
+  font-size:17px;
+  font-weight:900;
+  margin-top:10px;
+}
+
+.btn.secondary{
+  background:#202a36;
+  color:#dce4ec;
+  border:1px solid var(--line);
+}
+
+.metrics{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+
+.metric{
+  background:#101720;
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:12px;
+}
+
+.metric .k{
+  font-size:12px;
+  color:var(--muted);
+}
+
+.metric .v{
+  font-size:23px;
+  font-weight:900;
+  margin-top:4px;
+}
+
+.resultbox{
+  margin-top:12px;
+  border:1px solid #345c4b;
+  background:#10271f;
+  border-radius:16px;
+  padding:14px;
+}
+
+.resultbox .main{
+  font-size:24px;
+  font-weight:900;
+  margin:3px 0 6px;
+}
+
+.reason{
+  font-size:13px;
+  color:#cbd5df;
+  line-height:1.6;
+}
+
+.hidden{
+  display:none;
+}
+
+.notice{
+  font-size:12px;
+  color:#9aa8b8;
+  line-height:1.55;
+  border-left:3px solid var(--yellow);
+  padding-left:10px;
+  margin-top:12px;
+}
+
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.72);
+  display:none;
+  align-items:flex-end;
+  z-index:50;
+}
+
+.modal.show{
+  display:flex;
+}
+
+.sheet{
+  width:100%;
+  max-height:85vh;
+  overflow:auto;
+  background:#131b24;
+  border-radius:20px 20px 0 0;
+  padding:16px 12px 24px;
+}
+
+.sheettop{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:10px;
+}
+
+.close{
+  background:#253140;
+  border:0;
+  color:white;
+  border-radius:10px;
+  padding:8px 11px;
+}
+
+.deck{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:8px;
+}
+
+.pick{
+  background:white;
+  color:#111;
+  border:0;
+  border-radius:10px;
+  padding:12px 4px;
+  font-size:18px;
+  font-weight:900;
+}
+
+.pick.red{
+  color:#d82727;
+}
+
+.pick.used{
+  opacity:.2;
+}
+
+.street{
+  font-size:11px;
+  color:#718094;
+  margin-top:5px;
+}
+
+@media(max-width:420px){
+  .cardbtn{
+    width:54px;
+    height:74px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="wrap">
+
+  <div class="header">
+    <div>
+      <div class="brand">德州撲克分析器</div>
+      <div class="small">中文快速分析</div>
+    </div>
+    <div class="badge">測試版</div>
+  </div>
+
+  <div class="panel">
+    <h2>① 我的手牌</h2>
+
+    <div class="cards">
+      <button class="cardbtn" data-slot="hero0">＋</button>
+      <button class="cardbtn" data-slot="hero1">＋</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>② 公共牌</h2>
+
+    <div class="cards">
+      <button class="cardbtn" data-slot="board0">＋</button>
+      <button class="cardbtn" data-slot="board1">＋</button>
+      <button class="cardbtn" data-slot="board2">＋</button>
+      <button class="cardbtn" data-slot="board3">＋</button>
+      <button class="cardbtn" data-slot="board4">＋</button>
+    </div>
+
+    <div class="street">
+      前三張＝翻牌｜第4張＝轉牌｜第5張＝河牌
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>③ 牌局資料</h2>
+
+    <div class="row">
+
+      <div>
+        <label>目前底池</label>
+        <input id="pot" type="number" value="1000">
+      </div>
+
+      <div>
+        <label>對手下注</label>
+        <input id="bet" type="number" value="500">
+      </div>
+
+      <div>
+        <label>我的有效籌碼</label>
+        <input id="stack" type="number" value="4200">
+      </div>
+
+      <div>
+        <label>對手有效籌碼</label>
+        <input id="vstack" type="number" value="3800">
+      </div>
+
+      <div>
+        <label>我的位置</label>
+
+        <select id="pos">
+          <option>BTN 按鈕位</option>
+          <option>CO 關煞位</option>
+          <option>HJ</option>
+          <option>UTG 槍口位</option>
+          <option>SB 小盲</option>
+          <option>BB 大盲</option>
+        </select>
+
+      </div>
+
+      <div>
+        <label>剩餘玩家</label>
+
+        <select id="players">
+          <option value="2">2 人</option>
+          <option value="3">3 人</option>
+          <option value="4">4 人以上</option>
+        </select>
+
+      </div>
+
+    </div>
+  </div>
+
+  <div class="panel">
+
+    <h2>④ 對手類型</h2>
+
+    <div class="pills">
+
+      <button class="pill">偏緊</button>
+      <button class="pill active">一般</button>
+      <button class="pill">偏鬆</button>
+      <button class="pill">激進</button>
+      <button class="pill">被動</button>
+      <button class="pill">未知</button>
+
+    </div>
+
+    <button class="btn" id="analyze">
+      開始分析
+    </button>
+
+    <button class="btn secondary" id="reset">
+      全部重置
+    </button>
+
+  </div>
+
+  <div class="panel hidden" id="results">
+
+    <h2>分析結果</h2>
+
+    <div class="metrics">
+
+      <div class="metric">
+        <div class="k">底池賠率</div>
+        <div class="v" id="potodds">—</div>
+      </div>
+
+      <div class="metric">
+        <div class="k">SPR</div>
+        <div class="v" id="spr">—</div>
+      </div>
+
+      <div class="metric">
+        <div class="k">目前階段</div>
+        <div class="v" id="streetResult">—</div>
+      </div>
+
+      <div class="metric">
+        <div class="k">資料完整度</div>
+        <div class="v" id="confidence">—</div>
+      </div>
+
+    </div>
+
+    <div class="resultbox">
+
+      <div class="small">
+        初步分析
+      </div>
+
+      <div class="main" id="headline">
+        —
+      </div>
+
+      <div class="reason" id="reason">
+        —
+      </div>
+
+    </div>
+
+    <div class="notice">
+      目前為介面測試版。後續正式版本會加入牌型判斷、勝率、Outs、Range、Equity、EV、籌碼深度與更完整的策略分析。
+    </div>
+
+  </div>
+
+</div>
+
+
+<div class="modal" id="modal">
+
+  <div class="sheet">
+
+    <div class="sheettop">
+
+      <b>選擇一張牌</b>
+
+      <button class="close" id="close">
+        關閉
+      </button>
+
+    </div>
+
+    <div class="deck" id="deck"></div>
+
+  </div>
+
+</div>
+
+
+<script>
+
+const ranks=[
+'A','K','Q','J','10',
+'9','8','7','6','5','4','3','2'
+];
+
+const suits=[
+['♠',false],
+['♥',true],
+['♦',true],
+['♣',false]
+];
+
+const slots={
+hero0:null,
+hero1:null,
+board0:null,
+board1:null,
+board2:null,
+board3:null,
+board4:null
+};
+
+let currentSlot=null;
+
+const modal=document.getElementById("modal");
+const deck=document.getElementById("deck");
+
+
+function usedCards(){
+
+  return Object.values(slots).filter(Boolean);
+
+}
+
+
+function renderDeck(){
+
+  deck.innerHTML="";
+
+  for(const suitInfo of suits){
+
+    const suit=suitInfo[0];
+    const red=suitInfo[1];
+
+    for(const rank of ranks){
+
+      const card=rank+suit;
+
+      const button=document.createElement("button");
+
+      button.className="pick";
+
+      if(red){
+        button.classList.add("red");
+      }
+
+      if(usedCards().includes(card)){
+        button.classList.add("used");
+      }
+
+      button.textContent=card;
+
+      button.onclick=function(){
+
+        slots[currentSlot]=card;
+
+        renderSlots();
+
+        modal.classList.remove("show");
+
+      };
+
+      deck.appendChild(button);
+
+    }
+
+  }
+
+}
+
+
+function renderSlots(){
+
+  document.querySelectorAll(".cardbtn").forEach(function(button){
+
+    const key=button.dataset.slot;
+
+    const card=slots[key];
+
+    if(card){
+
+      button.textContent=card;
+
+      button.classList.add("filled");
+
+      if(
+        card.includes("♥") ||
+        card.includes("♦")
+      ){
+
+        button.classList.add("red");
+
+      }else{
+
+        button.classList.remove("red");
+
+      }
+
+    }else{
+
+      button.textContent="＋";
+
+      button.classList.remove("filled");
+      button.classList.remove("red");
+
+    }
+
+  });
+
+}
+
+
+document.querySelectorAll(".cardbtn").forEach(function(button){
+
+  button.onclick=function(){
+
+    currentSlot=button.dataset.slot;
+
+    renderDeck();
+
+    modal.classList.add("show");
+
+  };
+
+});
+
+
+document.getElementById("close").onclick=function(){
+
+  modal.classList.remove("show");
+
+};
+
+
+modal.onclick=function(e){
+
+  if(e.target===modal){
+
+    modal.classList.remove("show");
+
+  }
+
+};
+
+
+document.querySelectorAll(".pill").forEach(function(button){
+
+  button.onclick=function(){
+
+    document.querySelectorAll(".pill").forEach(function(x){
+
+      x.classList.remove("active");
+
+    });
+
+    button.classList.add("active");
+
+  };
+
+});
+
+
+document.getElementById("reset").onclick=function(){
+
+  Object.keys(slots).forEach(function(key){
+
+    slots[key]=null;
+
+  });
+
+  renderSlots();
+
+  document.getElementById("pot").value=1000;
+
+  document.getElementById("bet").value=500;
+
+  document.getElementById("stack").value=4200;
+
+  document.getElementById("vstack").value=3800;
+
+  document.getElementById("results")
+  .classList.add("hidden");
+
+};
+
+
+document.getElementById("analyze").onclick=function(){
+
+  const hero=[
+    slots.hero0,
+    slots.hero1
+  ].filter(Boolean);
+
+  const board=[
+    slots.board0,
+    slots.board1,
+    slots.board2,
+    slots.board3,
+    slots.board4
+  ].filter(Boolean);
+
+
+  if(hero.length<2){
+
+    alert("請先選滿 2 張手牌");
+
+    return;
+
+  }
+
+
+  if(board.length===1 || board.length===2){
+
+    alert("公共牌至少需要 3 張");
+
+    return;
+
+  }
+
+
+  const pot=
+  Number(document.getElementById("pot").value)||0;
+
+  const bet=
+  Number(document.getElementById("bet").value)||0;
+
+  const stack=
+  Number(document.getElementById("stack").value)||0;
+
+
+  let potOdds=0;
+
+  if(bet>0){
+
+    potOdds=
+    bet/(pot+bet+bet)*100;
+
+  }
+
+
+  let spr=0;
+
+  if(pot+bet>0){
+
+    spr=
+    stack/(pot+bet);
+
+  }
+
+
+  let street="翻牌前";
+
+  if(board.length===3){
+
+    street="翻牌";
+
+  }
+
+  if(board.length===4){
+
+    street="轉牌";
+
+  }
+
+  if(board.length===5){
+
+    street="河牌";
+
+  }
+
+
+  let completeness=45;
+
+  if(hero.length===2){
+    completeness+=15;
+  }
+
+  if(board.length>=3){
+    completeness+=15;
+  }
+
+  if(pot>0){
+    completeness+=10;
+  }
+
+  if(stack>0){
+    completeness+=10;
+  }
+
+  completeness=Math.min(
+    completeness,
+    100
+  );
+
+
+  document.getElementById("potodds")
+  .textContent=
+  potOdds.toFixed(1)+"%";
+
+
+  document.getElementById("spr")
+  .textContent=
+  spr.toFixed(2);
+
+
+  document.getElementById("streetResult")
+  .textContent=
+  street;
+
+
+  document.getElementById("confidence")
+  .textContent=
+  completeness+"%";
+
+
+  const opponentType=
+  document.querySelector(".pill.active").textContent;
+
+
+  document.getElementById("headline")
+  .textContent=
+  "已取得牌局資料";
+
+
+  document.getElementById("reason")
+  .textContent=
+  "你的手牌為 "+
+  hero.join("、")+
+  "，目前位於「"+
+  street+
+  "」階段。"+
+  "底池為 "+
+  pot+
+  "，對手下注 "+
+  bet+
+  "。"+
+  "目前設定的對手類型為「"+
+  opponentType+
+  "」。"+
+  "底池賠率約為 "+
+  potOdds.toFixed(1)+
+  "%，SPR 約為 "+
+  spr.toFixed(2)+
+  "。正式版後續將加入牌力、勝率、Outs、Range、Equity 與 EV 等分析。";
+
+
+  document.getElementById("results")
+  .classList.remove("hidden");
+
+
+  document.getElementById("results")
+  .scrollIntoView({
+    behavior:"smooth"
+  });
+
+};
+
+</script>
+
+</body>
+</html>
